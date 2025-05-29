@@ -225,9 +225,7 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("""
     **🏢 For Recruitment:**
-    - Screen English-speaking candidates
-    - Verify language requirements
-    - Identify accent preferences
+    - Verify language skills for roles
     - Filter initial applications
     """)
 
@@ -236,8 +234,6 @@ with col2:
     **📞 For Call Centers:**
     - Assess English fluency
     - Match accents to regions
-    - Quality control checks
-    - Training needs assessment
     """)
 
 # Footer
