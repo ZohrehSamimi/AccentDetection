@@ -1,181 +1,289 @@
-import streamlit as st
-import requests
+import gradio as gr
 import os
-import tempfile
-import subprocess
+import torch
 
-st.set_page_config(
-    page_title="English Language & Accent Detection", 
-    page_icon="🌍", 
-    layout="centered"
-)
+# Optimize for Hugging Face Spaces
+torch.set_num_threads(2)
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
-st.title("🌍 English Language & Accent Detection Tool")
-st.write("Lightweight version - Upload a video to analyze language and accent.")
+# Import your functions
+try:
+    from utils import download_video, extract_audio, analyze_speech, cleanup_files
+except ImportError as e:
+    print(f"Import Error: {e}")
 
-st.warning("⚠️ **Lightweight Demo Version**: This version uses simplified detection methods due to deployment constraints. For full AI-powered analysis, run locally.")
-
-def download_video(url):
-    """Download video to temporary file"""
+def analyze_video_gradio(video_url):
+    """
+    Main function for Gradio interface
+    Returns: (status, language_result, accent_result, confidence_info, detailed_info)
+    """
+    if not video_url or not video_url.strip():
+        return (
+            "❌ Error: Please enter a video URL",
+            "",
+            "",
+            "",
+            ""
+        )
+    
+    video_path = None
+    audio_path = None
+    
     try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        response = requests.get(url, stream=True, headers=headers, timeout=30)
-        response.raise_for_status()
+        # Download video
+        video_path = download_video(video_url.strip())
         
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-        with open(temp_file.name, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+        if not video_path or not os.path.exists(video_path):
+            return (
+                "❌ Video download failed! Make sure URL is a direct link to video file.",
+                "",
+                "",
+                "",
+                "Common issues:\n- URL must be direct link to video file\n- YouTube/social media links won't work\n- Try right-clicking video → 'Copy video address'"
+            )
         
-        return temp_file.name
-    except Exception as e:
-        st.error(f"Download failed: {e}")
-        return None
+        download_info = f"✅ Video downloaded ({os.path.getsize(video_path):,} bytes)"
+        
+        # Extract audio
+        audio_path = extract_audio(video_path)
+        
+        if not audio_path or not os.path.exists(audio_path):
+            return (
+                "❌ Audio extraction failed! Video might not contain audio.",
+                "",
+                "",
+                "",
+                "The video file doesn't contain audio or is in an unsupported format."
+            )
+        
+        audio_info = f"✅ Audio extracted ({os.path.getsize(audio_path):,} bytes)"
+        
+        # Analyze speech
+        is_english, language, accent, lang_confidence, accent_confidence = analyze_speech(audio_path)
+        
+        if not is_english:
+            # NOT ENGLISH
+            status = "❌ Speaker is NOT speaking English"
+            language_result = f"Detected Language: {language.title()}"
+            accent_result = "N/A (Not English)"
+            confidence_info = f"Language Confidence: {lang_confidence:.1f}%"
+            detailed_info = f"""
+{download_info}
+{audio_info}
 
-def extract_audio_info(video_path):
-    """Extract basic audio information using ffmpeg"""
-    try:
-        # Use ffprobe to get audio info
-        cmd = [
-            'ffprobe', '-v', 'quiet', '-print_format', 'json', 
-            '-show_format', '-show_streams', video_path
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        if result.returncode == 0:
-            return True, "Audio track detected"
-        else:
-            return False, "No audio track found"
+ANALYSIS RESULTS:
+Language: {language.title()}
+Confidence: {lang_confidence:.1f}%
+
+For English accent analysis, please provide a video where the speaker is speaking English.
+            """.strip()
             
+        else:
+            # IS ENGLISH
+            status = "✅ Speaker IS speaking English!"
+            language_result = "Language: English ✅"
+            accent_result = f"Detected Accent: {accent}"
+            confidence_info = f"Language: {lang_confidence:.1f}% | Accent: {accent_confidence:.1f}%"
+            
+            # Confidence interpretation
+            if accent_confidence >= 80:
+                confidence_desc = "🎯 High confidence prediction"
+            elif accent_confidence >= 60:
+                confidence_desc = "🤔 Moderate confidence prediction"
+            else:
+                confidence_desc = "⚠️ Low confidence prediction"
+            
+            # Recruitment assessment
+            if lang_confidence >= 80:
+                recruitment_status = "✅ CANDIDATE SPEAKS ENGLISH - Suitable for English-speaking roles"
+            elif lang_confidence >= 60:
+                recruitment_status = "🤔 LIKELY SPEAKS ENGLISH - May need additional assessment"
+            else:
+                recruitment_status = "⚠️ UNCERTAIN - Recommend manual review"
+            
+            detailed_info = f"""
+{download_info}
+{audio_info}
+
+🎯 AI ANALYSIS RESULTS:
+Language: English
+Language Confidence: {lang_confidence:.1f}%
+Detected Accent: {accent}
+Accent Confidence: {accent_confidence:.1f}%
+Assessment: {confidence_desc}
+
+👔 FOR RECRUITERS:
+{recruitment_status}
+
+🔬 TECHNICAL DETAILS:
+- Language Model: SpeechBrain VoxLingua107 (107 languages)
+- Accent Model: SpeechBrain ECAPA-TDNN (CommonAccent dataset)
+- Audio Processing: 16kHz mono PCM
+- Supported Accents: American, British, Australian, Indian, Canadian, Scottish, Irish, Welsh, South African, New Zealand, Malaysian, Filipino, Singaporean, Hong Kong, Bermudian, South Atlantic
+
+💡 FACTORS AFFECTING ACCURACY:
+- Audio quality and clarity
+- Background noise levels
+- Speaker's accent strength  
+- Length of speech (10+ seconds recommended)
+- Speaking style and pace
+            """.strip()
+        
+        return (status, language_result, accent_result, confidence_info, detailed_info)
+        
     except Exception as e:
-        return False, f"Audio analysis failed: {e}"
-
-def simple_language_detection(video_url):
-    """Simplified language detection based on URL and basic analysis"""
+        error_details = f"Error: {str(e)}"
+        return (
+            "❌ Analysis failed",
+            "",
+            "",
+            "",
+            f"Unexpected error occurred:\n{error_details}\n\nTry:\n- Different video with clearer audio\n- Ensure video contains 10+ seconds of speech\n- Check audio quality"
+        )
     
-    # Simple heuristics based on domain/URL patterns
-    url_lower = video_url.lower()
-    
-    if any(indicator in url_lower for indicator in ['.edu', 'english', 'en-', 'us-', 'uk-', 'american', 'british']):
-        return "English", 85.0
-    elif any(indicator in url_lower for indicator in ['es-', 'spanish', 'mexico', 'spain']):
-        return "Spanish", 80.0
-    elif any(indicator in url_lower for indicator in ['fr-', 'french', 'france']):
-        return "French", 80.0
-    else:
-        return "Unknown", 60.0
+    finally:
+        # Clean up temporary files
+        if video_path or audio_path:
+            cleanup_files(video_path, audio_path)
 
-def simple_accent_detection():
-    """Simplified accent detection"""
-    import random
+# Create Gradio interface
+def create_interface():
+    with gr.Blocks(
+        title="English Language & Accent Detection",
+        theme=gr.themes.Soft(),
+        css=".gradio-container {max-width: 900px; margin: auto;}"
+    ) as interface:
+        
+        gr.HTML("""
+        <div style="text-align: center; padding: 20px;">
+            <h1>🌍 English Language & Accent Detection Tool</h1>
+            <p>AI-powered tool that detects if a speaker is speaking English, then analyzes their accent variety.</p>
+            <p><strong>🤗 Running on Hugging Face Spaces - Free AI analysis!</strong></p>
+        </div>
+        """)
+        
+        with gr.Row():
+            with gr.Column():
+                video_url_input = gr.Textbox(
+                    label="🔗 Video URL",
+                    placeholder="https://example.com/video.mp4",
+                    info="Enter a direct link to a video file (MP4, AVI, MOV, etc.)"
+                )
+                
+                analyze_btn = gr.Button(
+                    "🔍 Analyze Language & Accent", 
+                    variant="primary",
+                    size="lg"
+                )
+        
+        with gr.Row():
+            status_output = gr.Textbox(
+                label="📊 Analysis Status",
+                interactive=False
+            )
+        
+        with gr.Row():
+            with gr.Column():
+                language_output = gr.Textbox(
+                    label="🌍 Language Detection",
+                    interactive=False
+                )
+            with gr.Column():
+                accent_output = gr.Textbox(
+                    label="🎯 Accent Detection", 
+                    interactive=False
+                )
+        
+        confidence_output = gr.Textbox(
+            label="📈 Confidence Scores",
+            interactive=False
+        )
+        
+        detailed_output = gr.Textbox(
+            label="📋 Detailed Results",
+            interactive=False,
+            lines=15
+        )
+        
+        # How it works section
+        with gr.Accordion("ℹ️ How this tool works", open=False):
+            gr.HTML("""
+            <h3>Two-Step AI Analysis:</h3>
+            <h4>Step 1: Language Detection 🌍</h4>
+            <ul>
+                <li><strong>AI model analyzes audio</strong> to identify spoken language</li>
+                <li><strong>Supports 107+ languages</strong> using SpeechBrain VoxLingua107</li>
+                <li><strong>Only proceeds if English detected</strong></li>
+            </ul>
+            
+            <h4>Step 2: English Accent Analysis 🎯</h4>
+            <ul>
+                <li><strong>16 different English accents:</strong></li>
+                <li>American, British (England), Australian, Indian, Canadian</li>
+                <li>Scottish, Irish, Welsh, South African, New Zealand</li>
+                <li>Malaysian, Filipino, Singaporean, Hong Kong, Bermudian, South Atlantic</li>
+            </ul>
+            
+            <h3>Perfect for:</h3>
+            <ul>
+                <li>✅ <strong>Recruitment screening</strong> - Verify English-speaking candidates</li>
+                <li>✅ <strong>Language assessment</strong> - Determine English fluency levels</li>
+                <li>✅ <strong>Call center hiring</strong> - Match accents to service regions</li>
+                <li>✅ <strong>Research & analysis</strong> - Study accent patterns</li>
+            </ul>
+            
+            <h3>Requirements:</h3>
+            <ul>
+                <li>Direct video file URL (not YouTube/social media links)</li>
+                <li>Clear audio with minimal background noise</li>
+                <li>At least 10-15 seconds of speech</li>
+                <li>Single speaker preferred</li>
+            </ul>
+            """)
+        
+        # Use cases section  
+        with gr.Accordion("🎯 Use Cases", open=False):
+            gr.HTML("""
+            <div style="display: flex; justify-content: space-around;">
+                <div>
+                    <h4>🏢 Recruitment & HR:</h4>
+                    <ul>
+                        <li>Screen English-speaking candidates</li>
+                        <li>Verify language requirements</li>
+                        <li>Assess communication skills</li>
+                        <li>Filter initial applications</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>📞 Business Applications:</h4>
+                    <ul>
+                        <li>Call center agent assessment</li>
+                        <li>Voice training programs</li>
+                        <li>Accent coaching feedback</li>
+                        <li>Quality assurance checks</li>
+                    </ul>
+                </div>
+            </div>
+            """)
+        
+        # Connect the interface
+        analyze_btn.click(
+            fn=analyze_video_gradio,
+            inputs=[video_url_input],
+            outputs=[status_output, language_output, accent_output, confidence_output, detailed_output]
+        )
+        
+        gr.HTML("""
+        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9em;">
+            🤗 Powered by Hugging Face Spaces • 🧠 AI Models: SpeechBrain<br>
+            🌍 Language Detection → 🎯 English Accent Analysis<br>
+            Made with ❤️ for multilingual communication
+        </div>
+        """)
     
-    accents = ["American", "British (England)", "Australian", "Canadian", "Indian"]
-    accent = random.choice(accents)
-    confidence = random.uniform(65, 85)
-    
-    return accent, confidence
+    return interface
 
-# Main interface
-video_url = st.text_input(
-    "🔗 Video URL:", 
-    placeholder="https://example.com/video.mp4",
-    help="Enter a direct link to a video file"
-)
-
-with st.expander("ℹ️ About this lightweight version"):
-    st.write("""
-    **This is a simplified demo version** that works within deployment constraints.
-    
-    **What it does:**
-    - ✅ Downloads and validates video files
-    - ✅ Checks for audio tracks
-    - ✅ Provides basic language/accent estimation
-    
-    **What it doesn't do:**
-    - ❌ AI-powered language detection (requires heavy models)
-    - ❌ Precise accent classification (requires SpeechBrain/PyTorch)
-    
-    **For full functionality:**
-    - Clone the repository and run locally
-    - Install all dependencies including PyTorch and SpeechBrain
-    - Get accurate AI-powered analysis
-    """)
-
-if st.button("🔍 Analyze Video", type="primary"):
-    if not video_url.strip():
-        st.warning("⚠️ Please enter a video URL first.")
-    else:
-        with st.spinner("📥 Downloading and analyzing video..."):
-            try:
-                # Download video
-                video_path = download_video(video_url.strip())
-                
-                if not video_path:
-                    st.error("❌ Video download failed!")
-                    st.stop()
-                
-                st.success(f"✅ Video downloaded ({os.path.getsize(video_path):,} bytes)")
-                
-                # Check audio
-                has_audio, audio_info = extract_audio_info(video_path)
-                
-                if not has_audio:
-                    st.error(f"❌ {audio_info}")
-                    st.stop()
-                
-                st.success(f"✅ {audio_info}")
-                
-                # Simple language detection
-                language, lang_confidence = simple_language_detection(video_url)
-                
-                # Display results
-                st.markdown("---")
-                st.markdown("### 🎯 Analysis Results (Simplified)")
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("Detected Language", language)
-                with col2:
-                    st.metric("Confidence", f"{lang_confidence:.1f}%")
-                
-                if "english" in language.lower():
-                    st.success("✅ **English detected!**")
-                    
-                    # Simple accent detection
-                    accent, accent_confidence = simple_accent_detection()
-                    
-                    col3, col4 = st.columns(2)
-                    with col3:
-                        st.metric("Estimated Accent", accent)
-                    with col4:
-                        st.metric("Confidence", f"{accent_confidence:.1f}%")
-                    
-                    st.info("💡 **Note**: This is a simplified estimation. For accurate results, run the full version locally.")
-                else:
-                    st.warning("⚠️ **Non-English language detected**")
-                    st.info("This tool is optimized for English accent detection.")
-                
-                # Cleanup
-                os.unlink(video_path)
-                
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
-
-st.markdown("---")
-st.markdown("### 🚀 Want Full AI-Powered Analysis?")
-st.code("""
-# Clone the repository and run locally:
-git clone https://github.com/ZohrehSamimi/AccentDetection.git
-cd AccentDetection
-python -m venv accent-env
-accent-env\\Scripts\\activate  # Windows
-pip install -r requirements.txt
-streamlit run app.py
-""")
-
-st.markdown("**Local version includes:**")
-st.markdown("- 🤖 Advanced AI language detection (107+ languages)")
-st.markdown("- 🎯 Precise accent classification (16 English accents)")  
-st.markdown("- 🔬 SpeechBrain and PyTorch models")
-st.markdown("- 📊 Detailed confidence analysis")
+# Launch the interface
+if __name__ == "__main__":
+    interface = create_interface()
+    interface.launch()
