@@ -1,12 +1,5 @@
 streamlit
 requests
 ffmpeg-python
-torch
-torchaudio
-transformers
-librosa
 numpy
 scipy
-speechbrain
-soundfile
-resampy
