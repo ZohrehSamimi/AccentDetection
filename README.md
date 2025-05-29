@@ -1,6 +1,23 @@
+---
+title: English Language & Accent Detection
+emoji: 🌍
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: 4.36.0
+app_file: app.py
+pinned: false
+---
+
 # English Language & Accent Detection Tool 🌍🎯
 
 A two-step AI tool that first detects if a speaker is speaking English, then analyzes their specific English accent variety. Perfect for recruitment screening and language assessment.
+
+## 🌐 Try It Now!
+
+**Live Demo**: [English Language & Accent Detection on HuggingFace Spaces](https://huggingface.co/spaces/Samimizhr/accent-detection)
+
+*Try the tool directly in your browser - no installation required!*
 
 ## 🚀 Features
 
@@ -14,7 +31,9 @@ A two-step AI tool that first detects if a speaker is speaking English, then ana
 
 American, British (England), Australian, Indian, Canadian, Scottish, Irish, Welsh, South African, New Zealand, Malaysian, Filipino, Singaporean, Hong Kong, Bermudian, South Atlantic
 
-## 🛠️ Quick Start
+## 🛠️ Installation (For Local Development)
+
+Want to run locally or contribute to the project? Follow these steps:
 
 ### 1. Clone the Repository
 ```bash
@@ -46,10 +65,12 @@ pip install -r requirements.txt
 
 ### 5. Run the Application
 ```bash
-streamlit run app.py
-```
+# For Gradio version (HuggingFace)
+python app.py
 
-The app will open in your browser at `http://localhost:8501`
+# For Streamlit version (Local)
+streamlit run app_streamlit.py
+```
 
 ## 📖 How to Use
 
@@ -63,10 +84,12 @@ The app will open in your browser at `http://localhost:8501`
 
 ```
 AccentDetection/
-├── app.py              # Streamlit web interface
+├── app.py              # Gradio web interface (HuggingFace)
+├── app_streamlit.py    # Streamlit interface (Local)
 ├── utils.py            # Core detection functions  
 ├── cleanup.py          # Cache cleanup utilities
 ├── requirements.txt    # Python dependencies
+├── packages.txt        # System packages (HuggingFace)
 ├── .gitignore         # Git ignore rules
 └── README.md          # This documentation
 ```
