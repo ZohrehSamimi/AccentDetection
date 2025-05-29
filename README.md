@@ -1,48 +1,37 @@
-# Activate your virtual environment first
-cd C:\2025\REM\REMProject
-accent-env\Scripts\activate
-
-# Install all required packages
-pip install speechbrain
-pip install librosa
-pip install pyannote.audio
-pip install transformers
-pip install torch torchaudio
-pip install numpy scipy
-
-# Or install everything at once
-pip install speechbrain librosa pyannote.audio transformers torch torchaudio numpy scipy streamlit requests ffmpeg-python
-
-
-
-pip install -r requirements.txt
 # English Language & Accent Detection Tool 🌍🎯
 
-A tool that first detects if a speaker is speaking English, then analyzes their English accent variety.
+A two-step AI tool that first detects if a speaker is speaking English, then analyzes their specific English accent variety. Perfect for recruitment screening and language assessment.
 
-## Features
+## 🚀 Features
 
-- 🌍 **Language Detection**: Identifies 107+ languages
-- 🎯 **English Accent Analysis**: Detects 16 different English accents
-- 👔 **Perfect for Recruitment**: Screen English-speaking candidates
-- 📞 **Call Center Ready**: Assess language fluency and accent matching
+- **🌍 Language Detection**: Identifies 107+ languages using advanced AI
+- **🎯 English Accent Analysis**: Detects 16 different English accent varieties
+- **👔 Recruitment Ready**: Screen English-speaking candidates automatically
+- **📞 Call Center Optimized**: Assess language fluency and accent matching
+- **🔄 Two-Step Process**: Only analyzes accents for confirmed English speakers
 
-## Supported English Accents
+## 🎯 Supported English Accents
 
 American, British (England), Australian, Indian, Canadian, Scottish, Irish, Welsh, South African, New Zealand, Malaysian, Filipino, Singaporean, Hong Kong, Bermudian, South Atlantic
 
-## Setup Instructions
+## 🛠️ Quick Start
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YourUsername/REMProject.git
-cd REMProject
+git clone https://github.com/ZohrehSamimi/AccentDetection.git
+cd AccentDetection
 ```
 
-### 2. Create Virtual Environment
+### 2. Set Up Environment
 ```bash
+# Create virtual environment
 python -m venv accent-env
-source accent-env/bin/activate  # On Windows: accent-env\Scripts\activate
+
+# Activate virtual environment
+# Windows:
+accent-env\Scripts\activate
+# Mac/Linux:
+source accent-env/bin/activate
 ```
 
 ### 3. Install Dependencies
@@ -51,7 +40,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Install FFmpeg
-- **Windows**: Download from https://ffmpeg.org/download.html
+- **Windows**: Download from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html)
 - **Mac**: `brew install ffmpeg`
 - **Linux**: `sudo apt install ffmpeg`
 
@@ -60,51 +49,103 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Usage
+The app will open in your browser at `http://localhost:8501`
 
-1. Enter a direct video URL (MP4, AVI, MOV, etc.)
-2. Click "Analyze Language & Accent"
-3. Wait for the two-step analysis:
-   - **Step 1**: Language detection
-   - **Step 2**: English accent analysis (if English detected)
+## 📖 How to Use
 
-## File Structure
+1. **Enter Video URL**: Paste a direct video file URL (MP4, AVI, MOV, etc.)
+2. **Click Analyze**: Press "Analyze Language & Accent" button
+3. **Wait for Results**: The system performs two-step analysis:
+   - **Step 1**: Detects if the speaker is speaking English
+   - **Step 2**: If English detected, analyzes the specific accent variety
+
+## 📁 Project Structure
 
 ```
-REMProject/
+AccentDetection/
 ├── app.py              # Streamlit web interface
-├── utils.py            # Core detection functions
-├── cleanup.py          # Cleanup script for cache files
+├── utils.py            # Core detection functions  
+├── cleanup.py          # Cache cleanup utilities
 ├── requirements.txt    # Python dependencies
 ├── .gitignore         # Git ignore rules
-└── README.md          # This file
+└── README.md          # This documentation
 ```
 
-## Use Cases
+## 💼 Use Cases
 
-- **Recruitment Screening**: Verify English-speaking candidates
-- **Call Center Hiring**: Match accents to service regions  
-- **Language Assessment**: Determine English fluency levels
-- **Quality Control**: Monitor accent consistency
+- **🏢 Recruitment Screening**: Automatically verify English-speaking candidates
+- **📞 Call Center Hiring**: Match candidates to regional service requirements
+- **📊 Language Assessment**: Determine English fluency levels objectively
+- **🎯 Quality Control**: Monitor accent consistency in voice services
+- **📚 Research**: Analyze accent patterns in speech data
 
-## Notes
+## ⚙️ Requirements
 
-- Models will be downloaded automatically on first run
-- Cache files are stored in `model_cache/` directory
-- Temporary files are cleaned up automatically
-- Run `python cleanup.py` to clean cache if needed
+- **Python**: 3.8 or higher
+- **FFmpeg**: For audio processing
+- **RAM**: 4GB+ recommended (AI models)
+- **Internet**: Required for initial model downloads
+- **Storage**: ~2GB for cached models
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
-If models fail to load, try:
+### Models Won't Load
 ```bash
-python cleanup.py  # Clean cache
+python cleanup.py  # Clean model cache
 pip install --upgrade speechbrain transformers
 ```
 
-## Requirements
+### Audio Extraction Fails
+- Ensure FFmpeg is properly installed
+- Check that video URL is a direct file link
+- Verify video contains audio track
 
-- Python 3.8+
-- FFmpeg
-- 4GB+ RAM (for AI models)
-- Internet connection (for model downloads)
+### Poor Accuracy
+- Use videos with clear, single-speaker audio
+- Ensure 10+ seconds of continuous speech
+- Minimize background noise
+- Use high-quality audio recordings
+
+## 📊 Technical Details
+
+- **Language Detection**: SpeechBrain VoxLingua107 (107 languages, 6.7% error rate)
+- **Accent Classification**: SpeechBrain ECAPA-TDNN on CommonAccent dataset
+- **Audio Processing**: 16kHz mono, PCM format
+- **Fallback Methods**: Multiple detection approaches for reliability
+
+## 🗂️ File Management
+
+- **Model Cache**: Stored in `model_cache/` directory
+- **Temporary Files**: Auto-cleaned after processing
+- **Cache Cleanup**: Run `python cleanup.py` if needed
+
+## ⚡ Performance Notes
+
+- **First Run**: Slower (downloads models ~1-2GB)
+- **Subsequent Runs**: Faster (uses cached models)
+- **Processing Time**: 30-60 seconds per video
+- **Accuracy**: Higher with longer, clearer audio samples
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is open source. Please check individual model licenses for commercial use.
+
+## 🆘 Support
+
+If you encounter issues:
+1. Check the troubleshooting section above
+2. Ensure all dependencies are installed correctly
+3. Verify FFmpeg installation
+4. Open an issue on GitHub with error details
+
+---
+
+**Made with ❤️ for multilingual communication and accent diversity**
