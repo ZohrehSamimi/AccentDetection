@@ -1,3 +1,21 @@
+# Activate your virtual environment first
+cd C:\2025\REM\REMProject
+accent-env\Scripts\activate
+
+# Install all required packages
+pip install speechbrain
+pip install librosa
+pip install pyannote.audio
+pip install transformers
+pip install torch torchaudio
+pip install numpy scipy
+
+# Or install everything at once
+pip install speechbrain librosa pyannote.audio transformers torch torchaudio numpy scipy streamlit requests ffmpeg-python
+
+
+
+pip install -r requirements.txt
 # English Language & Accent Detection Tool 🌍🎯
 
 A tool that first detects if a speaker is speaking English, then analyzes their English accent variety.
