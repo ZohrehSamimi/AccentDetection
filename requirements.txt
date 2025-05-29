@@ -1,2 +1,12 @@
-streamlit
+gradio
+speechbrain
+librosa
+transformers
+torch
+torchaudio
 requests
+ffmpeg-python
+numpy
+scipy
+soundfile
+resampy
