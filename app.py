@@ -1,7 +1,14 @@
-# app.py - OPTIMIZED FOR STREAMLIT CLOUD
+# app.py - FIXED VERSION
 import streamlit as st
 import os
 import sys
+
+# MUST BE FIRST STREAMLIT COMMAND
+st.set_page_config(
+    page_title="English Language & Accent Detection", 
+    page_icon="🌍", 
+    layout="centered"
+)
 
 # STREAMLIT CLOUD OPTIMIZATIONS
 import torch
@@ -11,17 +18,10 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'  # Avoid threading issues
 # Add error handling for imports
 try:
     from utils import download_video, extract_audio, analyze_speech, cleanup_files
-    st.success("✅ All modules loaded successfully")
 except ImportError as e:
     st.error(f"❌ Import Error: {e}")
     st.info("This might be a deployment issue. Please check the logs.")
     st.stop()
-
-st.set_page_config(
-    page_title="English Language & Accent Detection", 
-    page_icon="🌍", 
-    layout="centered"
-)
 
 st.title("🌍 English Language & Accent Detection Tool")
 st.write("Upload a video to first detect if the speaker is speaking English, then analyze their English accent.")
