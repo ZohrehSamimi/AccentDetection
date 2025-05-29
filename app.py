@@ -1,7 +1,21 @@
-# app.py - COMPLETE LANGUAGE + ACCENT ANALYSIS
+# app.py - OPTIMIZED FOR STREAMLIT CLOUD
 import streamlit as st
 import os
-from utils import download_video, extract_audio, analyze_speech, cleanup_files
+import sys
+
+# STREAMLIT CLOUD OPTIMIZATIONS
+import torch
+torch.set_num_threads(1)  # Reduce CPU usage
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'  # Avoid threading issues
+
+# Add error handling for imports
+try:
+    from utils import download_video, extract_audio, analyze_speech, cleanup_files
+    st.success("✅ All modules loaded successfully")
+except ImportError as e:
+    st.error(f"❌ Import Error: {e}")
+    st.info("This might be a deployment issue. Please check the logs.")
+    st.stop()
 
 st.set_page_config(
     page_title="English Language & Accent Detection", 
@@ -11,6 +25,9 @@ st.set_page_config(
 
 st.title("🌍 English Language & Accent Detection Tool")
 st.write("Upload a video to first detect if the speaker is speaking English, then analyze their English accent.")
+
+# Add a warning for Streamlit Cloud users
+st.info("⚠️ **Note**: First-time model loading may take 2-3 minutes. Please be patient!")
 
 # Information section
 with st.expander("ℹ️ How this tool works"):
@@ -88,7 +105,7 @@ if st.button("🔍 Analyze Language & Accent", type="primary"):
                 st.success(f"✅ Audio extracted ({os.path.getsize(audio_path):,} bytes)")
 
             # Analyze speech
-            with st.spinner("🧠 Analyzing language and accent... This may take 1-2 minutes..."):
+            with st.spinner("🧠 Analyzing language and accent... This may take 2-3 minutes on first run..."):
                 try:
                     is_english, language, accent, lang_confidence, accent_confidence = analyze_speech(audio_path)
                     
@@ -225,7 +242,9 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("""
     **🏢 For Recruitment:**
-    - Verify language skills for roles
+    - Screen English-speaking candidates
+    - Verify language requirements
+    - Identify accent preferences
     - Filter initial applications
     """)
 
@@ -234,6 +253,8 @@ with col2:
     **📞 For Call Centers:**
     - Assess English fluency
     - Match accents to regions
+    - Quality control checks
+    - Training needs assessment
     """)
 
 # Footer
