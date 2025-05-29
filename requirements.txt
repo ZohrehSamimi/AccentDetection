@@ -8,9 +8,5 @@ librosa
 numpy
 scipy
 speechbrain
-pyannote.audio
 soundfile
 resampy
-numba
-joblib
-scikit-learn
