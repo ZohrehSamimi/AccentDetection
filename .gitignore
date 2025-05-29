@@ -1,0 +1,43 @@
+@"
+# Virtual Environment - NEVER commit these!
+accent-env/
+venv/
+env/
+ENV/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Model cache
+model_cache/
+pretrained_models/
+
+# Temporary files
+*.tmp
+*.log
+input_video.mp4
+audio.wav
+temp_*
+
+# OS files
+.DS_Store
+Thumbs.db
+"@ | Out-File -FilePath .gitignore -Encoding UTF8
+
+# 6. Create requirements.txt
+@"
+streamlit
+requests
+ffmpeg-python
+torch
+torchaudio
+transformers
+librosa
+numpy
+scipy
+speechbrain
+pyannote.audio
+"@ | Out-File -FilePath requirements.txt -Encoding UTF8
