@@ -1,6 +1,2 @@
 streamlit
 requests
-ffmpeg-python
-numpy
-scipy
-torch==2.0.1
