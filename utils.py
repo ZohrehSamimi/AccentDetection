@@ -1,4 +1,4 @@
-# utils.py 
+# utils.py - FIXED ENGLISH DETECTION
 import requests
 import ffmpeg
 import torchaudio
