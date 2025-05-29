@@ -1,13 +1,3 @@
----
-title: English Language & Accent Detection
-emoji: 🌍
-colorFrom: blue
-colorTo: green
-sdk: gradio
-sdk_version: 4.36.0
-app_file: app.py
-pinned: false
----
 
 # English Language & Accent Detection Tool 🌍🎯
 
@@ -15,7 +5,7 @@ A two-step AI tool that first detects if a speaker is speaking English, then ana
 
 ## 🌐 Try It Now!
 
-**Live Demo**: [English Language & Accent Detection on HuggingFace Spaces](https://huggingface.co/spaces/Samimizhr/accent-detection)
+**Live Demo**: [English Language & Accent Detection on HuggingFace Spaces](https://huggingface.co/spaces/Samimizhr/AccentDetection)
 
 *Try the tool directly in your browser - no installation required!*
 
